@@ -23,15 +23,23 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Get Branch name
-        id: branchName
-        run: |
-          echo ::set-output name=branch::$(echo $PR_COMMENT | cut -d "[" -f2 | cut -d "]" -f1)
+      - name: Get the pull request information
+        id: get_pr
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: issueNumber,
+            });
+
+            // Set the branch name as an output
+            core.setOutput('branch_name', pullRequest.head.ref);
 
       - name: Check branch name
-        run: echo ${{ steps.branchName.outputs.branch }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo ${{ steps.get_pr.outputs.branch_name }}
 
       # - uses: bahmutov/npm-install@v1
 
