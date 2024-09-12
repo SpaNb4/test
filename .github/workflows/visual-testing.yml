@@ -24,7 +24,12 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Check head ref value
-        run: echo ${{ github.event.issue.number }}
+        run: echo ${{ github.head_ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check head ref value
+        run: echo ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
