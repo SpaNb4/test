@@ -23,13 +23,13 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Check head ref value
-        run: echo ${{ github.head_ref }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get Branch name
+        id: branchName
+        run: |
+          echo ::set-output name=branch::$(echo $PR_COMMENT | cut -d "[" -f2 | cut -d "]" -f1)
 
-      - name: Check head ref value
-        run: echo ${{ github.ref_name }}
+      - name: Check branch name
+        run: echo ${{ steps.branchName.outputs.branch }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
