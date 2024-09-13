@@ -38,11 +38,27 @@ jobs:
             core.setOutput('branch_name', pullRequest.head.ref);
             core.setOutput('commit_sha', pullRequest.head.sha);
 
+      - name: Get the target commit SHA
+        id: get_target_commit
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: ref } = await github.rest.git.getRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'heads/main',
+            });
+
+            core.setOutput('target_commit_sha', ref.object.sha);
+
       - name: Check branch name
         run: echo ${{ steps.get_pr.outputs.branch_name }}
 
       - name: Check commit sha
         run: echo ${{ steps.get_pr.outputs.commit_sha }}
+
+      - name: Check target commit
+        run: echo ${{ steps.get_target_commit.outputs.target_commit_sha }}
 
       # - uses: bahmutov/npm-install@v1
 
