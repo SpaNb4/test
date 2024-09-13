@@ -27,6 +27,9 @@ jobs:
         run: echo ${{ github.event.issue.pull_request.head.ref }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Test
+        run: echo 'just test'
 
       # - uses: bahmutov/npm-install@v1
 
