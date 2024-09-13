@@ -35,11 +35,14 @@ jobs:
               pull_number: issueNumber,
             });
 
-            // Set the branch name as an output
             core.setOutput('branch_name', pullRequest.head.ref);
+            core.setOutput('commit_sha', pullRequest.head.sha);
 
       - name: Check branch name
         run: echo ${{ steps.get_pr.outputs.branch_name }}
+
+      - name: Check commit sha
+        run: echo ${{ steps.get_pr.outputs.commit_sha }}
 
       # - uses: bahmutov/npm-install@v1
 
