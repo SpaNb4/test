@@ -12,7 +12,6 @@ jobs:
   visial-testing:
     if: ${{ github.event.issue.pull_request && github.event.comment.body == 'run visual now' }}
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/playwright:v1.47.1-noble
     steps:
       - name: Checkout Pull Request
         run: gh pr checkout ${{ github.event.issue.number }}
@@ -52,6 +51,9 @@ jobs:
             core.setOutput('target_commit_sha', ref.object.sha);
 
       - uses: bahmutov/npm-install@v1
+
+      - name: Install Playwright browsers and dependencies
+        run: npx playwright install --with-deps
 
       - run: npm run test:visual
         env:
