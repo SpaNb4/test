@@ -1,31 +1,63 @@
-name: Run Visual Testing on Pull Request
+name: Run Visual Testing on PR comment
 
 on:
-  pull_request:
-    types: [opened, synchronize]
-    branches:
-      - main
+  issue_comment:
+    types:
+      - created
 
 env:
   NODE_VERSION: 20.x
 
 jobs:
   visial-testing:
-    if: contains(github.event.pull_request.labels.*.name, 'visual testing')
+    if: ${{ github.event.issue.pull_request && github.event.comment.body == 'run visual now' }}
     runs-on: ubuntu-latest
     container: mcr.microsoft.com/playwright:v1.47.1-noble
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Pull Request
+        run: gh pr checkout ${{ github.event.issue.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - uses: bahmutov/npm-install@v1
+      - name: Get the pull request information
+        id: get_pr
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: issueNumber,
+            });
 
-      - name: Install Playwright browsers and dependencies
-        run: npx playwright install --with-deps
+            core.setOutput('branch_name', pullRequest.head.ref);
+            core.setOutput('commit_sha', pullRequest.head.sha);
+
+      - name: Get the target commit SHA
+        id: get_target_commit
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: ref } = await github.rest.git.getRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'heads/main',
+            });
+
+            core.setOutput('target_commit_sha', ref.object.sha);
+
+      - uses: bahmutov/npm-install@v1
 
       - run: npm run test:visual
         env:
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
+          PERCY_PULL_REQUEST: ${{ github.event.issue.number }}
+          PERCY_COMMIT: ${{ steps.get_pr.outputs.commit_sha }}
+          PERCY_TARGET_COMMIT: ${{ steps.get_target_commit.outputs.target_commit_sha }}
+          PERCY_BRANCH: ${{ steps.get_pr.outputs.branch_name }}
+          PERCY_TARGET_BRANCH: main
