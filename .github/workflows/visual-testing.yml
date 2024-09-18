@@ -1,16 +1,16 @@
 name: Run Visual Testing on PR comment
 
 on:
+  push:
+    branches: main
   pull_request:
-    branches:
-      - main
+    branches: main
 
 env:
   NODE_VERSION: 20.x
 
 jobs:
   visial-testing:
-    if: contains(github.event.pull_request.labels.*.name, 'visual testing')
     runs-on: ubuntu-latest
     container: mcr.microsoft.com/playwright:v1.47.1-noble
 
@@ -24,4 +24,3 @@ jobs:
       - run: npm run test:visual
         env:
           PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
-          PERCY_PULL_REQUEST: ${{ github.event.pull_request.number }}
